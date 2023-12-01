@@ -39,14 +39,17 @@ export const PieChartGraph = ({ data }) => {
                 ))}
             </Pie>
 
-            <Legend
-                payload={sortedData?.map((entry, index) => ({
-                    value: entry.country,
-                    type: 'circle',
-                    id: `color-${index}`,
-                    color: COLORS[index % COLORS.length],
-                }))}
-            />
+            {/* <div className='w-full flex'> */}
+                <Legend
+                style={{position:'relative'}}
+                    payload={sortedData?.map((entry, index) => ({
+                        value: entry.country,
+                        type: 'circle',
+                        id: `color-${index}`,
+                        color: COLORS[index % COLORS.length],
+                    }))}
+                />
+            {/* </div> */}
 
             <Tooltip
                 formatter={(value, name, props) => [value, props.payload.country]}

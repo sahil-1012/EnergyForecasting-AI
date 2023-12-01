@@ -11,10 +11,10 @@ try:
     # Connect to MongoDB
     client = MongoClient(MONGO_URL)
     db = client["BDT"]
-    collection = db["totalProduction"]
+    collection = db["carbonEmission"]
 
     # Read CSV file into a pandas DataFrame
-    df = pd.read_csv("./backend/old/consumption.csv")
+    df = pd.read_csv("./backend/old/carbonEmission.csv")
 
     # Convert DataFrame to a list of dictionaries (one dictionary per row)
     data_list = []
@@ -22,7 +22,7 @@ try:
         country_data = {
             "country": row["Countries"],
             "data": [
-                {"year": int(col), "production": row[col]}
+                {"year": int(col), "emission": row[col]}
                 for col in df.columns[1:]
                 if col.isdigit()
             ],

@@ -5,6 +5,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import BarChartGraph from '../charts/BarChartGraph';
+import LineGraph from '../charts/LineChartGraph';
 
 
 const Consumption = ({ value }) => {
@@ -17,7 +18,7 @@ const Consumption = ({ value }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`http://localhost:4000/api/getTotalConsumption?year=${year}`);
+                const response = await fetch(`http://localhost:4000/api/getTotalConsumption?year=${year}&type=${consumptionType}`);
 
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -125,7 +126,7 @@ const Consumption = ({ value }) => {
                 </div>
             </div>
             <div className='p-5 md:p-20 col-span-full w-full bg-white'>
-                <h3 className='text-blue-600 font-graphik  font-bold text-3xl md:text-4xl mb-8'>Consumption over Years {' '}
+                <h3 className='text-blue-600 font-graphik font-bold text-xl md:text-3xl ml-10 mb-16'>Consumption over Years {' '}
                     <span className='text-slate-400 text-lg '>
                         (mtoe)
                     </span>
@@ -134,8 +135,7 @@ const Consumption = ({ value }) => {
                 <BarChartGraph data={barData} type="consumption" />
             </div>
 
-
-        </div>
+        </div >
     )
 }
 

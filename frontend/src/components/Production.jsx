@@ -17,7 +17,7 @@ const Production = ({ value }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`http://localhost:4000/api/getTotalProduction?year=${year}`);
+                const response = await fetch(`http://localhost:4000/api/getTotalProduction?year=${year}&type=${productionType}`);
 
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -126,9 +126,9 @@ const Production = ({ value }) => {
                     <PieChartGraph data={data} />
                 </div>
             </div>
-            <div className='p-5 md:p-20 col-span-full w-full '>
-                <h3 className='text-blue-600 font-graphik  font-bold text-3xl md:text-4xl mb-8'>Production over Years {' '}
-                    <span className='text-slate-400 text-lg '>
+            <div className='p-5 md:p-20 col-span-full w-full bg-white'>
+                <h3 className='text-blue-600 font-graphik  font-bold text-xl md:text-3xl mb-8'>Production over Years {' '}
+                    <span className='text-slate-400 text-base '>
                         (mtoe)
                     </span>
                 </h3>

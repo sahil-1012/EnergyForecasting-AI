@@ -26,14 +26,18 @@ mongo_client = MongoClient(MONGO_URL)
 app = Flask(__name__)
 CORS(app)
 
-""" # ******* CONSUMPTION 
-"""
+""" # ******* CONSUMPTION """
+
+
 @app.route("/api/getTotalConsumption", methods=["GET"])
 def get_consumption_data():
     database_name = "BDT"
-    collection_name = "totalConsumption"
     year = request.args.get("year", default=None, type=int)
-
+    collectionType = request.args.get("type", default=None, type=str)
+ 
+    collection_name = "totalConsumption"
+    if collectionType == "coal":
+        collection_name = "coalConsumption"
     try:
         # Read data from MongoDB collection into a PySpark DataFrame
         data_df = (
@@ -101,15 +105,18 @@ def get_total_consumption():
         return jsonify({"error": str(e)}), 500
 
 
-
-
-""" # ******* PRODUCTION 
-"""
+""" # ******* PRODUCTION """
 @app.route("/api/getTotalProduction", methods=["GET"])
 def get_production_data():
     database_name = "BDT"
-    collection_name = "totalProduction"
     year = request.args.get("year", default=None, type=int)
+    collectionType = request.args.get("type", default=None, type=str)
+
+    collection_name = "totalProduction"
+    if collectionType == "coal":
+        collection_name = "coalProduction"
+
+    print(MONGO_URL + "/" + database_name + "." + collection_name)
 
     try:
         # Read data from MongoDB collection into a PySpark DataFrame
@@ -118,7 +125,6 @@ def get_production_data():
             .option("uri", MONGO_URL + "/" + database_name + "." + collection_name)
             .load()
         )
-
         # Drop the "_id" column
         data_df = data_df.drop("_id")
 
@@ -146,6 +152,7 @@ def get_production_data():
     except Exception as e:
         error_message = f"An unexpected error occurred: {e}"
         return jsonify({"error": error_message}), 500
+
 
 @app.route("/api/getTotalProductionOverYears", methods=["GET"])
 def get_total_production():
@@ -177,43 +184,72 @@ def get_total_production():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
-@app.route("/add_data", methods=["POST"])
-def add_entry():
-    database_name = "temp"
-    collection_name = "tump"
-    collection = mongo_client[database_name][collection_name]
-
+@app.route("/api/getCarbonEmission", methods=["GET"])
+def get_carbon_Emission():
     try:
-        # # Get data from the request
-        data = request.get_json()
+        total_emission_by_year = {}
+        database_name = "BDT"
+        collection_name = "carbonEmission"
+        emission_data = mongo_client[database_name][collection_name]
 
-        # # Convert the data to a PySpark DataFrame
-        schema = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", MONGO_URL + database_name + "." + collection_name)
-            .load()
-            .schema
-        )
-        data_df = spark.createDataFrame([data], schema=schema)
+        # Use find() to get a cursor and iterate over the documents
+        for country_data in emission_data.find():
+            for year_data in country_data["data"]:
+                year = year_data["year"]
+                emission = year_data["emission"]
 
-        # # Append the DataFrame to the MongoDB collection
-        data_df.write.format("com.mongodb.spark.sql.DefaultSource").mode(
-            "append"
-        ).option("uri", MONGO_URL + database_name + "." + collection_name).save()
+                # Accumulate the total production for each year
+                if year not in total_emission_by_year:
+                    total_emission_by_year[year] = 0
 
-        return jsonify({"message": "Entry added successfully"}), 201
+                total_emission_by_year[year] += emission
+
+        total_emission_formatted = [
+            {"year": year, "emission": value}
+            for year, value in total_emission_by_year.items()
+        ]
+
+        return jsonify(total_emission_formatted)
 
     except Exception as e:
-        error_message = f"An unexpected error occurred: {e}"
-        return jsonify({"error": error_message}), 500
+        return jsonify({"error": str(e)}), 500
+
+
+""" # *** ADD DATA ROUTE """
+# @app.route("/add_data", methods=["POST"])
+# def add_entry():
+#     database_name = "temp"
+#     collection_name = "tump"
+#     collection = mongo_client[database_name][collection_name]
+
+#     try:
+#         # # Get data from the request
+#         data = request.get_json()
+
+#         # # Convert the data to a PySpark DataFrame
+#         schema = (
+#             spark.read.format("com.mongodb.spark.sql.DefaultSource")
+#             .option("uri", MONGO_URL + database_name + "." + collection_name)
+#             .load()
+#             .schema
+#         )
+#         data_df = spark.createDataFrame([data], schema=schema)
+
+#         # # Append the DataFrame to the MongoDB collection
+#         data_df.write.format("com.mongodb.spark.sql.DefaultSource").mode(
+#             "append"
+#         ).option("uri", MONGO_URL + database_name + "." + collection_name).save()
+
+#         return jsonify({"message": "Entry added successfully"}), 201
+
+#     except Exception as e:
+#         error_message = f"An unexpected error occurred: {e}"
+#         return jsonify({"error": error_message}), 500
 
 
 # # Run the Flask application
 if __name__ == "__main__":
     app.run(port=4000, debug=True)
-
 
 # # Stop Spark session
 spark.stop()

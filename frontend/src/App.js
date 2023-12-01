@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Header from './components/Header';
 import Menu from './components/Menu';
 import Footer from './components/Footer';
+import CarbonEmission from './components/CarbonEmission';
 
 const App = () => {
   return (
@@ -10,6 +11,7 @@ const App = () => {
       <Navbar />
       <Header />
       <Menu />
+      <CarbonEmission />
       <Footer />
     </div>
   )
